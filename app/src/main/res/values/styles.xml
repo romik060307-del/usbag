@@ -1,0 +1,7 @@
+<resources>
+    <style name="RKTheme" parent="android:style/Theme.Holo.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#187D67</item>
+        <item name="android:windowBackground">#F4F7F6</item>
+    </style>
+</resources>

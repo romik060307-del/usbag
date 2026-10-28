@@ -1,0 +1,1 @@
+GitHub Actions builds cloudflared for the target ARM architecture and inserts it into this APK. The Android app copies the asset using a small fixed buffer; it does not load the entire executable into Java memory. The tunnel client can still exceed the available RAM on a 512 MB device.

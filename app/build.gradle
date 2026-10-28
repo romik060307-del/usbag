@@ -1,0 +1,27 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.rk.tunnel'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.rk.tunnel'
+        minSdk 19
+        targetSdk 28
+        versionCode 4
+        versionName '1.0.4'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+}

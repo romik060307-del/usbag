@@ -1,0 +1,20 @@
+RK TUNNEL v1.0.2 — PERBAIKAN OutOfMemoryError DI ANDROID 4.4.2
+
+PENYEBAB YANG DIPERBAIKI:
+Versi sebelumnya menyalin binary cloudflared ke file, lalu membaca SELURUH binary kembali ke byte[] untuk melakukan patch DNS saat aplikasi berjalan. ByteArrayOutputStream.toByteArray() membuat salinan tambahan. Pada tablet RAM 512 MB, ini dapat memicu java.lang.OutOfMemoryError.
+
+PERBAIKAN:
+- Patch jalur DNS cloudflared dilakukan di GitHub Actions saat build, bukan di tablet.
+- APK hanya menyalin binary ke penyimpanan aplikasi menggunakan buffer 8 KB.
+- Tidak ada lagi pembacaan seluruh executable ke dalam RAM Java.
+- Versi aplikasi dinaikkan menjadi 1.0.2.
+
+CARA MEMASANG:
+1. Di repository GitHub RK Tunnel, buka app/src/main/java/com/rk/tunnel/TunnelService.java.
+2. Ganti seluruh isinya dengan TunnelService.java dalam proyek versi 1.0.2 ini.
+3. Pastikan workflow .github/workflows/build-apk.yml tetap memakai Java 17 dan membangun/patch binary cloudflared di GitHub Actions.
+4. Commit perubahan, lalu buka Actions dan tunggu build selesai dengan tanda centang hijau.
+5. Unduh artifact RK-Tunnel-APK terbaru dan instal di tablet. Jika tanda tangan APK berbeda dan update ditolak, hapus APK lama lalu instal APK baru.
+
+CATATAN PENTING:
+Perbaikan ini menghilangkan alokasi memori Java besar yang diketahui. Belum membuktikan cloudflared dapat berjalan dengan sisa RAM tablet; cloudflared sendiri mungkin masih terlalu berat atau tidak cocok dengan build Android lama. Setelah build, uji lagi dan kirim teks Keterangan jika masih gagal.

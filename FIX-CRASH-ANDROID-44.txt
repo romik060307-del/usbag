@@ -1,0 +1,21 @@
+RK TUNNEL v1.0.1 — PERBAIKAN CRASH SAAT MENEKAN AKTIFKAN
+
+PENYEBAB YANG DITEMUKAN:
+Kode lama memanggil ProcessBuilder.redirectInput(File). Dokumentasi Android menyatakan metode itu baru tersedia mulai API 26, sedangkan tablet Advan pengguna menjalankan Android 4.4.2/API 19. Ini dapat memicu NoSuchMethodError ketika tombol Aktifkan ditekan.
+
+PERBAIKAN:
+- Mengganti redirectInput(File) dengan /system/bin/sh yang membuka resolver file sebagai stdin sebelum menjalankan cloudflared.
+- Menambahkan penanganan Throwable untuk melaporkan error runtime tak terduga ke bagian Keterangan, alih-alih langsung keluar tanpa informasi.
+- Menaikkan versi aplikasi ke 1.0.1.
+
+CARA PALING GAMPANG UNTUK REBUILD DI REPOSITORY LAMA:
+1. Buka repository RK Tunnel di GitHub.
+2. Buka app/src/main/java/com/rk/tunnel/TunnelService.java.
+3. Tekan Edit (ikon pensil), lalu ganti seluruh isi file dengan isi file RK-TunnelService-Android44-FIX.java yang disertakan.
+4. Simpan dengan Commit changes.
+5. Pastikan workflow .github/workflows/build-apk.yml masih memakai Java 17. Tidak perlu mengganti workflow kalau build sebelumnya sudah berhasil.
+6. Buka Actions. Tunggu build baru selesai dengan centang hijau.
+7. Unduh artifact RK-Tunnel-APK yang paling baru, lalu instal APK tersebut di tablet. Jika Android menolak update karena tanda tangan berbeda, hapus aplikasi lama lalu instal ulang APK baru; pengaturan lokal aplikasi bisa terhapus.
+
+CATATAN:
+Perbaikan ini menargetkan penyebab crash yang teridentifikasi dari kode pada Android 4.4.2. APK baru tetap perlu diuji pada tablet nyata. Jika app tidak crash tetapi bagian Keterangan menampilkan error (mis. executable ditolak), kirim teks Keterangan tersebut; itu akan menjadi masalah kompatibilitas binary cloudflared yang berbeda dari crash API 26.

@@ -1,0 +1,16 @@
+RK TUNNEL LITE v1.0.3 — PETUNJUK
+
+1. Pastikan web/server kamu masih aktif dan alamat ini bisa dibuka dari tablet: http://192.168.1.5:8080/
+2. Upload seluruh isi ZIP proyek ke repository GitHub (bukan folder ZIP-nya).
+3. Pastikan file .github/workflows/build-apk.yml ada tepat di jalur itu.
+4. Buka tab Actions, pilih Build RK Tunnel APK, lalu Run workflow. Atau commit/push ke branch main.
+5. Jika workflow centang hijau, buka hasil run dan unduh artifact RK-Tunnel-APK.
+6. Ekstrak ZIP artifact dan instal app-debug.apk di tablet Android 4.4.2.
+7. Buka RK Tunnel Lite. Pastikan alamat lokalnya http://192.168.1.5:8080/ lalu tekan AKTIFKAN SERVER PUBLIK.
+8. Setelah link https://...trycloudflare.com muncul, tekan SALIN LINK PUBLIK dan tes dari HP lain menggunakan data seluler, bukan Wi-Fi yang sama.
+
+PENTING:
+- Ini proyek sumber + workflow pembuat APK, bukan APK siap instal. APK perlu dibangun melalui GitHub Actions karena binary cloudflared dimasukkan saat proses build.
+- Link Quick Tunnel sementara; link hanya aktif selama proses tunnel dan koneksi internet terus berjalan. Link bisa berubah ketika tunnel dibuat ulang.
+- Penggunaan memori sudah ditekan, tetapi cloudflared tetap mungkin terlalu berat bagi perangkat RAM 512 MB.
+- Jika proses gagal, kirim teks lengkap pada bagian Keterangan di RK Tunnel Lite.
