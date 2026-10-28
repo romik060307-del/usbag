@@ -1,0 +1,105 @@
+name: Build RK Tunnel APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build one-click Android tunnel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout RK Tunnel app
+        uses: actions/checkout@v4
+
+      # IMPORTANT: Gradle 8.9 is not compatible with Java 25 (class version 69).
+      # Pin the JVM to Java 17 before starting Gradle.
+      - name: Set up Java 17 for Gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify Java version
+        run: |
+          java -version
+          javac -version
+
+      - name: Checkout official cloudflared source
+        uses: actions/checkout@v4
+        with:
+          repository: cloudflare/cloudflared
+          ref: 2026.10.5
+          path: cloudflared-src
+
+      - name: Set up Go for cloudflared
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: cloudflared-src/go.mod
+          cache: true
+          cache-dependency-path: cloudflared-src/go.sum
+
+      - name: Build cloudflared for 32-bit ARM
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: arm
+          GOARM: '7'
+          CONTAINER_BUILD: '1'
+        run: |
+          mkdir -p app/src/main/assets
+          cd cloudflared-src
+          go build -mod=readonly -trimpath -ldflags='-s -w' -o "$GITHUB_WORKSPACE/app/src/main/assets/cloudflared" ./cmd/cloudflared
+          cp LICENSE "$GITHUB_WORKSPACE/app/src/main/assets/CLOUDFLARED-LICENSE.txt"
+          file "$GITHUB_WORKSPACE/app/src/main/assets/cloudflared"
+          test -s "$GITHUB_WORKSPACE/app/src/main/assets/cloudflared"
+
+      - name: Patch Go DNS resolver path for Android and include CA roots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ca-certificates
+          cp /etc/ssl/certs/ca-certificates.crt app/src/main/assets/cacert.pem
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/src/main/assets/cloudflared')
+          data = path.read_bytes()
+          old = b'/etc/resolv.conf'
+          new = b'//proc/self/fd/0'
+          if len(old) != len(new):
+              raise SystemExit('DNS patch strings must have equal length')
+          count = data.count(old)
+          if count < 1:
+              raise SystemExit('Could not find Go resolver path in cloudflared binary; stopping rather than creating a broken APK')
+          path.write_bytes(data.replace(old, new))
+          path.chmod(0o755)
+          print('Patched resolver path occurrences:', count)
+          print('Binary size:', path.stat().st_size)
+          PY
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Confirm Gradle uses Java 17
+        run: gradle --version
+
+      - name: Build APK
+        run: gradle assembleDebug --stacktrace
+
+      - name: Upload RK Tunnel APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RK-Tunnel-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
